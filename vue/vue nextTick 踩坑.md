@@ -289,6 +289,61 @@
 
 对于 2.6 版本的 vue，前面的派发更新逻辑与 2.5 版本 vue 基本一致，但在对 nextTick 的实现上有一些差别，我们来看一下 2.6 版本的 nextTick：
 
+
+```javascript
+// src/core/util/next-tick.js
+
+export function nextTick (cb?: Function, ctx?: Object) {
+  // ......（省略）
+  if (!pending) {
+    pending = true
+    debugger
+    timerFunc()
+  }
+  // ......（省略）
+}
+```
+
+```javascript
+// src/core/util/next-tick.js
+
+let timerFunc
+
+if (typeof Promise !== 'undefined' && isNative(Promise)) {
+  const p = Promise.resolve()
+  timerFunc = () => {
+    p.then(flushCallbacks)
+    if (isIOS) setTimeout(noop)
+  }
+  isUsingMicroTask = true
+} else if (!isIE && typeof MutationObserver !== 'undefined' && (
+  isNative(MutationObserver) ||
+  // PhantomJS and iOS 7.x
+  MutationObserver.toString() === '[object MutationObserverConstructor]'
+)) {
+  let counter = 1
+  const observer = new MutationObserver(flushCallbacks)
+  const textNode = document.createTextNode(String(counter))
+  observer.observe(textNode, {
+    characterData: true
+  })
+  timerFunc = () => {
+    counter = (counter + 1) % 2
+    textNode.data = String(counter)
+  }
+  isUsingMicroTask = true
+} else if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
+  timerFunc = () => {
+    setImmediate(flushCallbacks)
+  }
+} else {
+  // Fallback to setTimeout.
+  timerFunc = () => {
+    setTimeout(flushCallbacks, 0)
+  }
+}
+```
+
 ```javascript
 let timerFunc
 
@@ -353,21 +408,21 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
 
 **在 2.5 版本下：**
 
-1. 复选框被点击勾选，click 事件被触发 prevent 阻止默认事件的修饰符生效，阻止复选框被勾选的行为重新渲染 DOM；由于 DOM 渲染是宏任务，此次 DOM 重新渲染被放入下一个 tick 执行；
-2. handleClick 回调事件被触发，`this.checked = !this.checked` ，由于 checked 默认值为 false，此时被设置为 true，组件准备重新渲染，**此次重新渲染同样作为宏任务**，在下一个 tick 执行；
+1. 复选框被点击勾选，click 事件被触发 prevent 阻止默认事件的修饰符生效，阻止复选框被勾选的行为重新渲染 DOM；由于此时当前执行栈的任务还未执行完毕，浏览器不会立即进行 DOM 渲染；
+2. 接下来 handleClick 回调事件被触发，`this.checked = !this.checked` ，由于 checked 默认值为 false，此时被设置为 true，组件准备重新渲染，**此次重新渲染同样作为宏任务**，在下一个 tick 执行；
 3. 当前任务栈任务执行完毕，检查是否有微任务；
-4. 由于当前没有微任务，于是先执行了步骤 1 中的 DOM 渲染，复选框选中状态被取消；
+4. 由于当前没有微任务，于是浏览器 GUI 线程接手，执行了步骤 1 中的 DOM 渲染，复选框选中状态被取消；
 5. 步骤 4 中 DOM 重新渲染完毕，继续执行步骤 2 中的宏任务；此时的 checked 值为 true，因此重新渲染后的复选框又被勾选上了。
 
 
 
 **在 2.6 版本下：**
 
-1. 复选框被点击勾选，click 事件被触发 prevent 阻止默认事件的修饰符生效，阻止复选框被勾选的行为重新渲染 DOM；由于 DOM 渲染是宏任务，此次 DOM 重新渲染被放入下一个 tick 执行；
-2. handleClick 回调事件被触发，`this.checked = !this.checked` ，由于 checked 默认值为 false，此时被设置为 true，组件准备重新渲染，**此次重新渲染作为微任务**，放在下一个 tick 执行；
+1. 复选框被点击勾选，click 事件被触发 prevent 阻止默认事件的修饰符生效，阻止复选框被勾选的行为重新渲染 DOM；由于此时当前执行栈的任务还未执行完毕，浏览器不会立即进行 DOM 渲染；
+2. 接下来 handleClick 回调事件被触发，`this.checked = !this.checked` ，由于 checked 默认值为 false，此时被设置为 true，组件准备重新渲染，**此次重新渲染作为微任务**，放在下一个 tick 执行；
 3. 当前任务栈任务执行完毕，检查是否有微任务；
-4. 命中步骤 2 中的微任务，也就是将复选框的值勾选上，但由于此时的复选框就是选中的状态，所以并不会触发 DOM 的重新渲染；
-5. 微任务执行完毕，检查是否有宏任务，此时就会命中步骤 1 中的宏任务，也就是执行 DOM 渲染，而步骤 1 中的我们阻止了默认事件，因此再次渲染后、复选框的选中状态又会被取消。
+4. 命中步骤 2 中的微任务，也就是将复选框的值勾选上，但由于此时的 DOM 还未更新，复选框就是选中的状态，所以并不会触发 DOM 的重新渲染；
+5. 微任务执行完毕，浏览器 GUI 线程接手执行 DOM 渲染，而步骤 1 中的我们阻止了默认事件，因此再次渲染后、复选框的选中状态又会被取消。
 
 
 
