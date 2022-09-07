@@ -1,0 +1,54 @@
+<!--
+ * @Descripttion: 
+ * @version: 
+ * @Author: 2100053
+ * @Date: 2022-07-17 17:25:07
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body>
+  <div id="app">
+    <input
+      type="checkbox"
+      :checked="checked"
+      @click="handleInput"> {{ checked }}
+  </div>
+</body>
+  <!-- import Vue before Element -->
+  <script src="./dist/vue.js"></script>
+  <!-- import JavaScript -->
+  <script src="./element.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: function () {
+        return {
+          checked: false
+        }
+      },
+      methods: {
+        handleInput ($event) {
+          debugger
+          this.$set()
+          $event.preventDefault()
+          this.checked = !this.checked
+        }
+      }
+    })
+  </script>
+  <style>
+    .el-checkbox__original {
+      opacity: 1 !important;
+      width: 15px !important;
+      height: 15px !important;
+    }
+    .el-checkbox__label {
+      padding-left: 15px !important;
+    }
+  </style>
+</html>
