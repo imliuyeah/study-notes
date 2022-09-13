@@ -33,6 +33,10 @@ export function toggleObserving (value: boolean) {
  * object. Once attached, the observer converts the target
  * object's property keys into getter/setters that
  * collect dependencies and dispatch updates.
+ * 
+ * Observer 类会被添加到每个被观察的对象上，
+ * 观察者会把目标对象的属性键转换为 getter 和 setter
+ * 并且收集为依赖 以及 派发更新
  */
 export class Observer {
   value: any;
@@ -43,6 +47,7 @@ export class Observer {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
+    // 给 value 定义一个 __ob__ 属性，标识这是一个 observed 对象
     def(value, '__ob__', this)
     if (Array.isArray(value)) {
       if (hasProto) {
@@ -131,6 +136,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 
 /**
  * Define a reactive property on an Object.
+ * 在一个对象上定义一个响应式属性
  */
 export function defineReactive (
   obj: Object,
@@ -139,8 +145,9 @@ export function defineReactive (
   customSetter?: ?Function,
   shallow?: boolean
 ) {
+  // 实例化一个 dep 依赖
   const dep = new Dep()
-
+  // 拿到 obj 上对应 key 的属性描述 判断它是否可配置
   const property = Object.getOwnPropertyDescriptor(obj, key)
   if (property && property.configurable === false) {
     return
