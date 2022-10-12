@@ -160,6 +160,8 @@ export function cached<F: Function> (fn: F): F {
 
 /**
  * Camelize a hyphen-delimited string.
+ * 将 - 连接的字符串变为驼峰形式
+ * is-show => isShow
  */
 const camelizeRE = /-(\w)/g
 export const camelize = cached((str: string): string => {
@@ -227,6 +229,10 @@ export function toArray (list: any, start?: number): Array<any> {
 
 /**
  * Mix properties into target object.
+ * 将属性混合到目标对象中
+ * to: {from: 'foo'}
+ * from: {default: 1}
+ * 返回 {from: 'foo', default: 1}
  */
 export function extend (to: Object, _from: ?Object): Object {
   for (const key in _from) {

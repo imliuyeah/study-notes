@@ -14,7 +14,6 @@ let uid = 0
 
 export function initMixin (Vue: Class<Component>) {
   Vue.prototype._init = function (options?: Object) {
-    debugger
     const vm: Component = this
     // a uid
     vm._uid = uid++
@@ -36,6 +35,7 @@ export function initMixin (Vue: Class<Component>) {
       // internal component options needs special treatment.
       initInternalComponent(vm, options)
     } else {
+      // 往vm 实例上挂载一个 $options 属性
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},

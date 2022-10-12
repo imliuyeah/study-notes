@@ -294,27 +294,36 @@ export function validateComponentName (name: string) {
 /**
  * Ensure all props option syntax are normalized into the
  * Object-based format.
+ * 将所有的 props 选项的语法转化为以下格式: 
+ *  { isShow: { type: null } }
  */
 function normalizeProps (options: Object, vm: ?Component) {
   const props = options.props
   if (!props) return
   const res = {}
   let i, val, name
+  // 如果 props 是个数组 遍历这个数组
   if (Array.isArray(props)) {
     i = props.length
     while (i--) {
       val = props[i]
       if (typeof val === 'string') {
+        // 将 - 连接的 name 变为驼峰形式
         name = camelize(val)
         res[name] = { type: null }
       } else if (process.env.NODE_ENV !== 'production') {
+        // 如果 props 数组里的元素不是 string 抛出警告
         warn('props must be strings when using array syntax.')
       }
     }
   } else if (isPlainObject(props)) {
+    // 如果 props 是个普通对象 比如 { isShow: {type: String} }
     for (const key in props) {
       val = props[key]
       name = camelize(key)
+      // 这里做了兼容
+      // 如果是 { isShow: String } 这种形式
+      // 会被转化为 { isShow: {type: String} }
       res[name] = isPlainObject(val)
         ? val
         : { type: val }
@@ -326,16 +335,22 @@ function normalizeProps (options: Object, vm: ?Component) {
       vm
     )
   }
+  // 将标准化后的结果挂载上去
   options.props = res
 }
 
 /**
  * Normalize all injections into Object-based format
+ * 将所有的 inject 语法转化为以下格式: 
+ * {foo: { default: 1 }} => {foo: { from: 'foo', default: 1 }}
+ * {foo: { from: 'bar', default: 1 }} => {foo: { from: 'bar', default: 1 }}
+ * ['foo'] => {foo: { from: 'foo'}}
  */
 function normalizeInject (options: Object, vm: ?Component) {
   const inject = options.inject
   if (!inject) return
   const normalized = options.inject = {}
+  // 如果 inject 是个数组
   if (Array.isArray(inject)) {
     for (let i = 0; i < inject.length; i++) {
       normalized[inject[i]] = { from: inject[i] }
@@ -343,6 +358,11 @@ function normalizeInject (options: Object, vm: ?Component) {
   } else if (isPlainObject(inject)) {
     for (const key in inject) {
       const val = inject[key]
+      // 如果 inject 的值对应的 value 是个对象
+      // 看值中有没有 from 属性, 有的话保留
+      // 没有则混入默认的 from 属性
+      // 以 {foo: { default: 'foo' }} 为例就是 
+      // {foo: { from: 'foo', default: 'foo' }}
       normalized[key] = isPlainObject(val)
         ? extend({ from: key }, val)
         : { from: val }
@@ -358,6 +378,9 @@ function normalizeInject (options: Object, vm: ?Component) {
 
 /**
  * Normalize raw function directives into object format.
+ * 将自定义指令转化为以下格式:
+ * { 'focus': function(){} } =>
+ * { 'focus': { bind: function(){}, update: function(){} } }
  */
 function normalizeDirectives (options: Object) {
   const dirs = options.directives
@@ -384,6 +407,8 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
 /**
  * Merge two option objects into a new one.
  * Core utility used in both instantiation and inheritance.
+ * 将两个 option 对象合并为一个
+ * 主要用于实例化和集成
  */
 export function mergeOptions (
   parent: Object,
@@ -398,6 +423,7 @@ export function mergeOptions (
     child = child.options
   }
 
+  // 将 props inject directives 标准化
   normalizeProps(child, vm)
   normalizeInject(child, vm)
   normalizeDirectives(child)
