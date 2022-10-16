@@ -58,7 +58,9 @@ if (process.env.NODE_ENV !== 'production') {
       const isAllowed = allowedGlobals(key) ||
         (typeof key === 'string' && key.charAt(0) === '_' && !(key in target.$data))
       if (!has && !isAllowed) {
+        // 报警告 提示保留的前缀
         if (key in target.$data) warnReservedPrefix(target, key)
+        // 报警告 提示不存在
         else warnNonPresent(target, key)
       }
       return has || !isAllowed
