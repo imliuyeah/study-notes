@@ -20,9 +20,11 @@ Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
+  // 使用 querySelector 获取对应的 dom 元素
   el = el && query(el)
 
   /* istanbul ignore if */
+  // 不允许直接将实例挂载在 html 或 body 元素上
   if (el === document.body || el === document.documentElement) {
     process.env.NODE_ENV !== 'production' && warn(
       `Do not mount Vue to <html> or <body> - mount to normal elements instead.`
@@ -32,6 +34,7 @@ Vue.prototype.$mount = function (
 
   const options = this.$options
   // resolve template/el and convert to render function
+  // 将 模板/el 解析为渲染函数
   if (!options.render) {
     let template = options.template
     if (template) {
@@ -86,6 +89,7 @@ Vue.prototype.$mount = function (
 /**
  * Get outerHTML of elements, taking care
  * of SVG elements in IE as well.
+ * 获取元素的外层HTML，小心 IE 中的 SVG 元素也是如此。
  */
 function getOuterHTML (el: Element): string {
   if (el.outerHTML) {
