@@ -19,7 +19,7 @@ export default class Dep {
     this.id = uid++
     this.subs = []
   }
-
+  // 往 subs 数组中添加 sub
   addSub (sub: Watcher) {
     this.subs.push(sub)
   }

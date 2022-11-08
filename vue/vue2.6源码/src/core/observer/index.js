@@ -65,16 +65,22 @@ export class Observer {
    * Walk through all properties and convert them into
    * getter/setters. This method should only be called when
    * value type is Object.
+   * 遍历所有的属性 将他们转换为 getter/setter
+   * 只有 value 是一个 Object 时这个方法才会被调用
    */
   walk (obj: Object) {
+    // 拿到这个对象的所有 key 组成的数组
     const keys = Object.keys(obj)
+    // 遍历数组
     for (let i = 0; i < keys.length; i++) {
+      // 为每个属性添加 getter/setter
       defineReactive(obj, keys[i])
     }
   }
 
   /**
    * Observe a list of Array items.
+   * 为一个数组的每个元素添加响应式
    */
   observeArray (items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
@@ -113,10 +119,12 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * or the existing observer if the value already has one.
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
+  // value 不是对象 或者 value 是 VNode 类型
   if (!isObject(value) || value instanceof VNode) {
     return
   }
   let ob: Observer | void
+  // 如果 value 上有 __ob__ ，并且 __ob__ 是 Observer 类型
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__
   } else if (
@@ -149,11 +157,14 @@ export function defineReactive (
   const dep = new Dep()
   // 拿到 obj 上对应 key 的属性描述 判断它是否可配置
   const property = Object.getOwnPropertyDescriptor(obj, key)
+  // 当且仅当该属性的 configurable 键值为 true 时，该属性的描述符才能够被改变，同时该属性也能从对应的对象上被删除。 
+  // 默认为 false。
   if (property && property.configurable === false) {
     return
   }
 
   // cater for pre-defined getter/setters
+  // 迎合预定义的 getter/setter
   const getter = property && property.get
   const setter = property && property.set
   if ((!getter || setter) && arguments.length === 2) {
@@ -250,6 +261,7 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
 
 /**
  * Delete a property and trigger change if necessary.
+ * 删除属性 如果有必要的话触发更新
  */
 export function del (target: Array<any> | Object, key: any) {
   if (process.env.NODE_ENV !== 'production' &&
