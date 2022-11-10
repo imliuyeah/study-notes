@@ -72,7 +72,9 @@ export default class VNode {
 }
 
 export const createEmptyVNode = (text: string = '') => {
+  // 实例化一个 vnode
   const node = new VNode()
+  // 把这个 vnode 标识为一个注释节点 注释的内容为 text
   node.text = text
   node.isComment = true
   return node
