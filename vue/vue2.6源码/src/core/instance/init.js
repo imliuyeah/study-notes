@@ -83,6 +83,7 @@ export function initInternalComponent (vm: Component, options: InternalComponent
   // 使用 vm 实例原型上的 options 来作为$options的原型
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
+  // 这样做是因为它比动态枚举更快
   const parentVnode = options._parentVnode
   opts.parent = options.parent
   opts._parentVnode = parentVnode
