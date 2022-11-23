@@ -13,7 +13,9 @@ import { extend, mergeOptions, formatComponentName } from '../util/index'
 let uid = 0
 
 export function initMixin (Vue: Class<Component>) {
+  // 初始化方法
   Vue.prototype._init = function (options?: Object) {
+    // vm 指向的就是 我们 new Vue 出来的 vue 实例
     const vm: Component = this
     // a uid
     vm._uid = uid++
@@ -27,12 +29,14 @@ export function initMixin (Vue: Class<Component>) {
     }
 
     // a flag to avoid this being observed
+    // _isVue 是用来避免被转换成响应式的标识
     vm._isVue = true
     // merge options
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
+      // 优化内部组件实例化，因为动态选项合并很慢，而且没有一个内部组件选项需要特殊处理。
       initInternalComponent(vm, options)
     } else {
       // 往vm 实例上挂载一个 $options 属性
@@ -76,6 +80,7 @@ export function initMixin (Vue: Class<Component>) {
 }
 
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
+  // 使用 vm 实例原型上的 options 来作为$options的原型
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
   const parentVnode = options._parentVnode
