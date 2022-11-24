@@ -60,6 +60,7 @@ export function initMixin (Vue: Class<Component>) {
     // 初始化事件
     initEvents(vm)
     initRender(vm)
+    // 调用钩子函数 beforeCreate
     callHook(vm, 'beforeCreate')
     initInjections(vm) // resolve injections before data/props
     initState(vm)
