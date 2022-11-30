@@ -214,7 +214,7 @@ function setElementText(el: TestElement, text: string) {
 function parentNode(node: TestNode): TestElement | null {
   return node.parentNode
 }
-
+// 获取当前node 的下一个兄弟 node
 function nextSibling(node: TestNode): TestNode | null {
   const parent = node.parentNode
   if (!parent) {
