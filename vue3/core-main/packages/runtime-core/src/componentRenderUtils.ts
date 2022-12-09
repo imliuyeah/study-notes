@@ -320,6 +320,7 @@ const isElementRoot = (vnode: VNode) => {
   )
 }
 
+// 是否需要更新组件
 export function shouldUpdateComponent(
   prevVNode: VNode,
   nextVNode: VNode,
@@ -332,6 +333,7 @@ export function shouldUpdateComponent(
   // Parent component's render function was hot-updated. Since this may have
   // caused the child component's slots content to have changed, we need to
   // force the child to update as well.
+  // 父组件的渲染函数已热更新。由于这可能导致子组件的插槽内容发生变化，需要强制子组件也更新
   if (__DEV__ && (prevChildren || nextChildren) && isHmrUpdating) {
     return true
   }
