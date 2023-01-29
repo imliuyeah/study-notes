@@ -1766,6 +1766,10 @@ function baseCreateRenderer(
     // 1. sync from start
     // (a b) c
     // (a b) d e
+    // 从新旧子节点的头部节点开始遍历
+    // 指针 i 指向新旧子节点的头部，向后移动
+    // 直到新旧子节点的 type 不同
+    // 或遍历到了新/旧 其中一子节点的尽头时 停止遍历
     while (i <= e1 && i <= e2) {
       const n1 = c1[i]
       const n2 = (c2[i] = optimized
@@ -1792,6 +1796,11 @@ function baseCreateRenderer(
     // 2. sync from end
     // a (b c)
     // d e (b c)
+    // 从新旧子节点的尾部节点开始遍历
+    // 指针 e1 指向新子节点的尾部，向前移动
+    // 指针 e2 指向旧子节点的尾部，向前移动
+    // 直到新旧子节点的 type 不同
+    // 或e1 / e2 其中一个指针越过 i 时 停止遍历
     while (i <= e1 && i <= e2) {
       const n1 = c1[e1]
       const n2 = (c2[e2] = optimized
@@ -1823,6 +1832,8 @@ function baseCreateRenderer(
     // (a b)
     // c (a b)
     // i = 0, e1 = -1, e2 = 0
+    // 如果指针 i 大于旧子节点指针e1 并且 小于新子节点指针e2
+    // 说明 e1 到 e2 之间的节点数量 都是新的需要被挂载的节点
     if (i > e1) {
       if (i <= e2) {
         const nextPos = e2 + 1
@@ -1853,6 +1864,8 @@ function baseCreateRenderer(
     // a (b c)
     // (b c)
     // i = 0, e1 = 0, e2 = -1
+    // 如果指针 i 大于新子节点指针e2 并且 小于等于旧子节点指针e1
+    // 说明 e1 到 e2 之间的节点数量 都是需要被删除的节点 
     else if (i > e2) {
       while (i <= e1) {
         unmount(c1[i], parentComponent, parentSuspense, true)
@@ -1864,11 +1877,15 @@ function baseCreateRenderer(
     // [i ... e1 + 1]: a b [c d e] f g
     // [i ... e2 + 1]: a b [e d c h] f g
     // i = 2, e1 = 4, e2 = 5
+    // 如果以上几种情况都不满足
     else {
       const s1 = i // prev starting index
       const s2 = i // next starting index
 
       // 5.1 build key:index map for newChildren
+      // 针对新子序列头尾之间 与旧子序列不同的部分，构建一个索引map
+      // map 的 key 就是我们给元素添加的 key: <div key="xxx"></div>
+      // 在这个例子里 keyToNewIndexMap 就是 {e:2, d:3, c:4, h:5}
       const keyToNewIndexMap: Map<string | number | symbol, number> = new Map()
       for (i = s2; i <= e2; i++) {
         const nextChild = (c2[i] = optimized
@@ -1889,17 +1906,24 @@ function baseCreateRenderer(
       // 5.2 loop through old children left to be patched and try to patch
       // matching nodes & remove nodes that are no longer present
       let j
+      // 新子序列已更新节点的数量
       let patched = 0
+      // 新子序列等待更新节点的数量
       const toBePatched = e2 - s2 + 1
+      // 是否存在要移动的节点
       let moved = false
       // used to track whether any node has moved
+      // 用于跟踪判断是否有节点移动
       let maxNewIndexSoFar = 0
       // works as Map<newIndex, oldIndex>
       // Note that oldIndex is offset by +1
       // and oldIndex = 0 is a special value indicating the new node has
       // no corresponding old node.
       // used for determining longest stable subsequence
+      // 这个数组存储新子序列中的元素在旧子序列节点的索引，用于确定最长递增子序列
       const newIndexToOldIndexMap = new Array(toBePatched)
+      // 用 0 填充 newIndexToOldIndexMap
+      // 如果遍历完了仍有元素的值为 0，则说明这个新节点没有对应的旧节点
       for (i = 0; i < toBePatched; i++) newIndexToOldIndexMap[i] = 0
 
       for (i = s1; i <= e1; i++) {
@@ -1911,6 +1935,7 @@ function baseCreateRenderer(
         }
         let newIndex
         if (prevChild.key != null) {
+          // newIndex 是旧子序列的节点在新子序列中的索引
           newIndex = keyToNewIndexMap.get(prevChild.key)
         } else {
           // key-less node, try to locate a key-less node of the same type
@@ -1924,10 +1949,23 @@ function baseCreateRenderer(
             }
           }
         }
+        // 如果newIndex 不存在
+        // 说明该旧子序列的节点在新子序列中找不到
+        // 那么直接挂载该旧子序列的节点
         if (newIndex === undefined) {
           unmount(prevChild, parentComponent, parentSuspense, true)
         } else {
+          // 这个数组存储新子序列中的元素在旧子序列节点的索引，用于确定最长递增子序列
+          // 
           newIndexToOldIndexMap[newIndex - s2] = i + 1
+          // 因为 newIndex 是从 keyToNewIndexMap 中获取的
+          // 我们知道 keyToNewIndexMap 中的索引是递增的
+          // 而这里 maxNewIndexSoFar 始终存储的是最新一次求值的 newIndex
+          // 如果 newIndex 一直大于等于 maxNewIndexSoFar
+          // 那么说明索引是一直递增的，没有移动
+          // 反之则说明被移动了
+          // [i ... e1 + 1]: a b [c d e] f g
+          // [i ... e2 + 1]: a b [c d h e] f g
           if (newIndex >= maxNewIndexSoFar) {
             maxNewIndexSoFar = newIndex
           } else {
@@ -1950,11 +1988,17 @@ function baseCreateRenderer(
 
       // 5.3 move and mount
       // generate longest stable subsequence only when nodes have moved
+      // 如果存在需要移动的情况
+      // 通过 getSequence 方法求出一个最长递增子序列 increasingNewIndexSequence
+      // 那么索引存在 increasingNewIndexSequence 的元素就不需要移动
+      // 而其它索引不在最长递增子序列中的元素就需要移动
+      // 这样一来就能达到用最少的消耗（移动）来更新 dom 的目的
       const increasingNewIndexSequence = moved
         ? getSequence(newIndexToOldIndexMap)
         : EMPTY_ARR
       j = increasingNewIndexSequence.length - 1
       // looping backwards so that we can use last patched node as anchor
+      // 为什么要反向遍历？
       for (i = toBePatched - 1; i >= 0; i--) {
         const nextIndex = s2 + i
         const nextChild = c2[nextIndex] as VNode
