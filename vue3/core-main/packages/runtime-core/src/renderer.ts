@@ -2023,6 +2023,7 @@ function baseCreateRenderer(
           // There is no stable subsequence (e.g. a reverse)
           // OR current node is not among the stable sequence
           if (j < 0 || i !== increasingNewIndexSequence[j]) {
+            // 将 nextChild 节点 插入到 anchor 节点前
             move(nextChild, container, anchor, MoveType.REORDER)
           } else {
             j--
@@ -2056,6 +2057,7 @@ function baseCreateRenderer(
     }
 
     if (type === Fragment) {
+      // 将 el 节点 插入到 anchor 节点前
       hostInsert(el!, container, anchor)
       for (let i = 0; i < (children as VNode[]).length; i++) {
         move((children as VNode[])[i], container, anchor, moveType)
@@ -2077,10 +2079,12 @@ function baseCreateRenderer(
     if (needTransition) {
       if (moveType === MoveType.ENTER) {
         transition!.beforeEnter(el!)
+        // 将 el 节点 插入到 anchor 节点前
         hostInsert(el!, container, anchor)
         queuePostRenderEffect(() => transition!.enter(el!), parentSuspense)
       } else {
         const { leave, delayLeave, afterLeave } = transition!
+        // 将 el 节点 插入到 anchor 节点前
         const remove = () => hostInsert(el!, container, anchor)
         const performLeave = () => {
           leave(el!, () => {
@@ -2095,6 +2099,7 @@ function baseCreateRenderer(
         }
       }
     } else {
+      // 将 el 节点 插入到 anchor 节点前
       hostInsert(el!, container, anchor)
     }
   }

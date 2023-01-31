@@ -8,6 +8,7 @@ const templateContainer = doc && /*#__PURE__*/ doc.createElement('template')
 
 export const nodeOps: Omit<RendererOptions<Node, Element>, 'patchProp'> = {
   insert: (child, parent, anchor) => {
+    // 将 child 节点 插入到 anchor 节点前
     parent.insertBefore(child, anchor || null)
   },
 
