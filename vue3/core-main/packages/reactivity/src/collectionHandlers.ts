@@ -169,7 +169,7 @@ interface IterationResult {
   value: any
   done: boolean
 }
-
+// 创建一个可迭代方法
 function createIterableMethod(
   method: string | symbol,
   isReadonly: boolean,
