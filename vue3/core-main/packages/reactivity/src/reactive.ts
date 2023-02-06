@@ -193,6 +193,7 @@ function createReactiveObject(
   }
   // target is already a Proxy, return it.
   // exception: calling readonly() on a reactive object
+  // 如果 target 已经被 proxy 代理过，那么这里的 if 判断就会触发 proxy 的 get 逻辑
   if (
     target[ReactiveFlags.RAW] &&
     !(isReadonly && target[ReactiveFlags.IS_REACTIVE])

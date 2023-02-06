@@ -15,26 +15,32 @@
     <input
       type="checkbox"
       :checked="checked"
-      @click="handleInput"> {{ checked }}
+      @click="handleInput"> {{ data.checked }}
   </div>
 </body>
   <!-- import Vue before Element -->
   <script src="./packages/vue/dist/vue.global.js"></script>
   <!-- import JavaScript -->
   <script>
-    const { createApp, reactive, toRefs } = Vue;
+    const { createApp, reactive, toRefs, watch } = Vue;
     const data = reactive({
-      checked: false
+      checked: false,
+      value: {a: 1}
+    })
+    watch(() => data.value, () => {
+      console.log('watch 属性触发')
     })
     reactive(data)
     const app = createApp({
       setup() {
         const handleInput = () => {
+          console.log('handleInput')
           data.checked = !data.checked
+          // data.value.a++
         }
         return {
           handleInput,
-          ...toRefs(data)
+          data
         }
       }
     });

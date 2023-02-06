@@ -84,7 +84,8 @@ function createArrayInstrumentations() {
   })
   return instrumentations
 }
-
+// createGetter 返回了 proxy handler 中 get 方法的代理
+// 当尝试通过 target.xxx 来获取值时，就会触发这个方法
 function createGetter(isReadonly = false, shallow = false) {
   return function get(target: Target, key: string | symbol, receiver: object) {
     if (key === ReactiveFlags.IS_REACTIVE) {
