@@ -25,18 +25,13 @@
     const { createApp, reactive, toRefs, watch } = Vue;
     const data = reactive({
       checked: false,
-      value: {a: 1}
+      value: {a: {b: 1}}
     })
-    watch(() => data.value, () => {
-      console.log('watch 属性触发')
-    })
-    reactive(data)
     const app = createApp({
       setup() {
         const handleInput = () => {
           console.log('handleInput')
-          data.checked = !data.checked
-          // data.value.a++
+          data.value.a.b++
         }
         return {
           handleInput,
