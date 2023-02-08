@@ -58,11 +58,17 @@ function createArrayInstrumentations() {
   // values
   ;(['includes', 'indexOf', 'lastIndexOf'] as const).forEach(key => {
     instrumentations[key] = function (this: unknown[], ...args: unknown[]) {
+      // 这里的 this 执行调用当前方法的数组
+      // 比如 arr1.includes(xxx) this 就是 arr1
       const arr = toRaw(this) as any
       for (let i = 0, l = this.length; i < l; i++) {
+        // 执行 track 函数收集依赖
+        // i + '' 数字转字符串
         track(arr, TrackOpTypes.GET, i + '')
       }
       // we run the method using the original args first (which may be reactive)
+      // 调用对应的方法传入参数 并拿到返回结果
+      // 比如 key 为 includes，那么就是 arr.inludes(xxx)
       const res = arr[key](...args)
       if (res === -1 || res === false) {
         // if that didn't work, run it again using raw values.
@@ -122,6 +128,7 @@ function createGetter(isReadonly = false, shallow = false) {
     }
 
     if (!isReadonly) {
+      // 依赖收集
       track(target, TrackOpTypes.GET, key)
     }
 

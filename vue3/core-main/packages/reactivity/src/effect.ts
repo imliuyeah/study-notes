@@ -210,8 +210,15 @@ export function resetTracking() {
   shouldTrack = last === undefined ? true : last
 }
 
+// 对 target 进行依赖收集
+// 举个例子
 export function track(target: object, type: TrackOpTypes, key: unknown) {
+  // 这里的 activeEffect 就是会导致对应组件重新渲染的副作用函数
   if (shouldTrack && activeEffect) {
+    // targetMap 键为 target 本身，值仍是一个 map，我们称为为 depsMap
+    // depsMap 的键为被访问的 key，值为这个 key 的依赖（也就是当这个 key 改变时需要被通知到的哪些地方，比如计算属性、template模板等）
+    // 比如说:
+    // computed
     let depsMap = targetMap.get(target)
     if (!depsMap) {
       targetMap.set(target, (depsMap = new Map()))
