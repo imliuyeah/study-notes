@@ -186,6 +186,8 @@ function createSetter(shallow = false) {
     const result = Reflect.set(target, key, value, receiver)
     // don't trigger if target is something up in the prototype chain of original
     if (target === toRaw(receiver)) {
+      // 判断 key 是否存在于 target 上
+      // 不存在则执行 ADD 新增操作，存在则执行 SET 修改操作
       if (!hadKey) {
         trigger(target, TriggerOpTypes.ADD, key, value)
       } else if (hasChanged(value, oldValue)) {
