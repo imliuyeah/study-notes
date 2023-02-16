@@ -15,7 +15,7 @@
     <input
       type="checkbox"
       :checked="checked"
-      @click="handleInput"> {{ c.value }}
+      @click="handleInput"> {{ computedValue }}
   </div>
 </body>
   <!-- import Vue before Element -->
@@ -23,13 +23,18 @@
   <!-- import JavaScript -->
   <script>
     const { createApp, reactive, ref, toRefs, watch, computed, readonly } = Vue;
-    const c = reactive({ value: 1 })
     const app = createApp({
       setup() {
+        const computedValue = computed(() => {
+          console.log('111')
+          return 'computedValue'
+        })
+        const c = reactive({ value: 1 })
         const handleInput = () => {
           c.value++
         }
         return {
+          computedValue,
           handleInput,
           c
         }
@@ -37,14 +42,4 @@
     });
     app.mount("#app");
   </script>
-  <style>
-    .el-checkbox__original {
-      opacity: 1 !important;
-      width: 15px !important;
-      height: 15px !important;
-    }
-    .el-checkbox__label {
-      padding-left: 15px !important;
-    }
-  </style>
 </html>

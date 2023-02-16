@@ -83,20 +83,30 @@ export function computed<T>(
 ) {
   let getter: ComputedGetter<T>
   let setter: ComputedSetter<T>
-
+  // 判断传入 computed 的是纯函数，还是只有 get 对象
   const onlyGetter = isFunction(getterOrOptions)
   if (onlyGetter) {
+    // 如果传入的是纯函数，
+    // 比如：computed(() => {})
+    // 那么这个函数就是 computed 的 get 函数
     getter = getterOrOptions
+    // 此时如果试图改变 computed 的值就会抛出警告
     setter = __DEV__
       ? () => {
           console.warn('Write operation failed: computed value is readonly')
         }
       : NOOP
   } else {
+    // 如果同时传入了 get 和 set
+    // 比如：computed({
+    //   get: () => {},
+    //   set: () => {}
+    // })
     getter = getterOrOptions.get
     setter = getterOrOptions.set
   }
 
+  // 实例化一个 computed 类
   const cRef = new ComputedRefImpl(getter, setter, onlyGetter || !setter, isSSR)
 
   if (__DEV__ && debugOptions && !isSSR) {
