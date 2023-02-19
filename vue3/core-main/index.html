@@ -26,11 +26,14 @@
     const app = createApp({
       setup() {
         const computedValue = computed(() => {
-          console.log('111')
-          return 'computedValue'
+          return c.value + 1
         })
-        const c = reactive({ value: 1 })
+        const c = reactive({ 
+          value: 1,
+          d: computedValue.value
+        })
         const handleInput = () => {
+          console.log(computed.value)
           c.value++
         }
         return {
